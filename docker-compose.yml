@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  
+  wordpress:
+    image: wordpress:latest
+    depends_on:  # define starting queue, which is wordpress will start behind mysql container #
+      - mysql   
+    volumes:
+      - wordpress-data:/var/www/html
+    expose:      # with expose, service could NOT access from external , let haproxy to do this #
+      - "80"
+    restart: always
+    environment:        
+      WORDPRESS_DB_HOST: mysql   # Good thing is, Docker could comminicate each others by using their service name #
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    links:
+      - mysql
+
+  mysql:
+    image: mysql
+    expose:
+      - "3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+
+  haproxy:
+    # env.file path : ./haproxy.cfg
+    image: haproxy
+    restart: always
+    volumes:
+      - ./haproxy:/usr/local/etc/haproxy      # Mount haproxy env file. By Default, haproxy read configure file from /usr/local/etc/haproxy/haproxy.conf #
+    ports:           
+      - "80:80"                               
+      - "443:443"
+    links:
+      - wordpress
+
+volumes:
+  wordpress-data:
+  mysql-data:
+
+
