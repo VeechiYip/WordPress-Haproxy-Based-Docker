@@ -1,0 +1,31 @@
+global
+	daemon
+	maxconn 100      
+
+defaults
+	log	global
+	mode http
+	option	dontlognull
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+	errorfile 400 /usr/local/etc/haproxy/errors/400.http
+	errorfile 403 /usr/local/etc/haproxy/errors/403.http
+	errorfile 408 /usr/local/etc/haproxy/errors/408.http
+	errorfile 500 /usr/local/etc/haproxy/errors/500.http
+	errorfile 502 /usr/local/etc/haproxy/errors/502.http
+	errorfile 503 /usr/local/etc/haproxy/errors/503.http
+	errorfile 504 /usr/local/etc/haproxy/errors/504.http
+
+frontend www
+	bind *:80
+	bind *:443 ssl crt /usr/local/etc/haproxy/all.pem  
+	redirect scheme https code 301 if !{ ssl_fc }    # It would be Redirect to HTTPS if the connection is HTTP#
+	
+	# If you tend to build your website with http which is NOT secure , Line 22 & 23 Should NOT be assignment #
+    # HTTPS is highly recommended # 
+	use_backend WORDPRESS	if { ssl_fc_sni -i {YOUR_WORDPRESS_DOMAIN} }
+
+
+backend WORDPRESS
+	server WORDPRESS wordpress:80 check      # Docker Images that within the same container could connect each others with their service name #
