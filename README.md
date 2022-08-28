@@ -46,7 +46,7 @@ docker exec -it {Wordpress Container ID} bash
 ```Bash
 vim wp-config.php
 ```
-4.add code in the followings & save
+4. add three line code in the location behind */ & save.
 ```PHP
  * @package WordPress
  */
